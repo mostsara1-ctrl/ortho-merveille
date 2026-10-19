@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ortho Merveille — Boutique Orthophonique</title>
+  <!-- خط Lexend المريح للقراءة + خط Cairo للعربية -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Lexend:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- مكتبة Tailwind CSS للتصميم -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Lexend', 'Cairo', sans-serif; background-color: #FFF9FA; color: #4A353B; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- مكتبات React لتشغيل المتجر مباشرة في المتصفح وعلى GitHub -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // ⚠️ ضعي رقم الواتساب الخاص بكِ هنا مع رمز الجزائر 213 (بدون + أو 00)
+    const WHATSAPP_NUMBER = "213550000000";
+
+    const WILAYAS = [
+      "01 - Adrar (أدرار)", "02 - Chlef (الشلف)", "03 - Laghouat (الأغواط)", "04 - Oum El Bouaghi (أم البواقي)",
+      "05 - Batna (باتنة)", "06 - Béjaïa (بجاية)", "07 - Biskra (بسكرة)", "08 - Béchar (بشار)",
+      "09 - Blida (البليدة)", "10 - Bouira (البويرة)", "11 - Tamanrasset (تمنراست)", "12 - Tébessa (تبسة)",
+      "13 - Tlemcen (تلمسان)", "14 - Tiaret (تيارت)", "15 - Tizi Ouzou (تيزي وزو)", "16 - Alger (الجزائر)",
+      "17 - Djelfa (الجلفة)", "18 - Jijel (جيجل)", "19 - Sétif (سطيف)", "20 - Saïda (سعيدة)",
+      "21 - Skikda (سكيكدة)", "22 - Sidi Bel Abbès (سيدي بلعباس)", "23 - Annaba (عنابة)", "24 - Guelma (قالمة)",
+      "25 - Constantine (قسنطينة)", "26 - Médéa (المدية)", "27 - Mostaganem (مستغانم)", "28 - M'Sila (المسيلة)",
+      "29 - Mascara (معسكر)", "30 - Ouargla (ورقلة)", "31 - Oran (وهران)", "32 - El Bayadh (البيض)",
+      "33 - Illizi (إليزي)", "34 - Bordj Bou Arréridj (برج بوعريريج)", "35 - Boumerdès (بومرداس)", "36 - El Tarf (الطارف)",
+      "37 - Tindouf (تندوف)", "38 - Tissemsilt (تيسمسيلت)", "39 - El Oued (الوادي)", "40 - Khenchela (خنشلة)",
+      "41 - Souk Ahras (سوق أهراس)", "42 - Tipaza (تيبازة)", "43 - Mila (ميلة)", "44 - Aïn Defla (عين الدفلى)",
+      "45 - Naâma (النعامة)", "46 - Aïn Témouchent (عين تموشنت)", "47 - Ghardaïa (غرداية)", "48 - Relizane (غليزان)",
+      "49 - Timimoun (تيميمون)", "50 - Bordj Badji Mokhtar (برج باجي مختار)", "51 - Ouled Djellal (أولاد جلال)",
+      "52 - Béni Abbès (بني عباس)", "53 - In Salah (عين صالح)", "54 - In Guezzam (عين قزام)",
+      "55 - Touggourt (تقرت)", "56 - Djanet (جانت)", "57 - El M'Ghair (المغير)", "58 - El Meniaa (المنيعة)"
+    ];
+
+    const TRANSLATIONS = {
+      fr: {
+        dir: "ltr",
+        promo: "✨ Compose ton pack : -15% immédiat dès 3 livres ajoutés au panier !",
+        subtitle: "Livres & supports orthophoniques",
+        search: "Rechercher un livre (vocabulaire, lecture, phonologie...)",
+        cart: "Panier",
+        heroBadge: "Livres & Livrets Orthophoniques • Prêts à l'emploi",
+        heroTitle1: "Des livres orthophoniques ",
+        heroHighlight: "interactifs & ludiques",
+        heroTitle2: " pour vos séances 🌸",
+        heroDesc: "Découvrez notre collection de livres orthophoniques conçus pour le vocabulaire, la lecture, la phonologie, l'articulation et la compréhension.",
+        tabAll: "📚 Tous les livres",
+        tabPacks: "✨ Les Packs",
+        tabPepites: "🌸 Les Pépites à petit prix",
+        packTitle: "Compose ton pack (-15%)",
+        packSub: "Ajoute 3 livres au choix et obtiens -15% automatiquement",
+        packUnlocked: "🎉 -15% Débloqué !",
+        packSelected: "livres sélectionnés",
+        filterNeed: "1. Filtrer par domaine orthophonique :",
+        filterSeries: "2. Filtrer par collection :",
+        reset: "Réinitialiser",
+        add: "Ajouter",
+        preview: "Aperçu",
+        save: "Économiser",
+        emptyCart: "Votre panier est vide.",
+        subtotal: "Sous-total",
+        discount: "Remise Pack (-15%)",
+        total: "Total à payer",
+        formTitle: "Finaliser ma commande",
+        namePh: "Nom et Prénom",
+        phonePh: "Numéro de téléphone (ex: 0550...)",
+        wilayaPh: "-- Choisir votre Wilaya --",
+        formatPdf: "📄 Format PDF",
+        formatPrint: "📦 Livre Imprimé",
+        whatsappBtn: "Commander via WhatsApp",
+        alertFill: "Veuillez remplir votre nom, numéro de téléphone et choisir votre Wilaya.",
+        needs: ["Tous", "Vocabulaire", "Lecture", "Phonologie", "Articulation", "Compréhension"],
+        series: ["Toutes", "Collection Vocabulaire", "Lecture pas à pas", "Défi Phonologie", "Articulation Ludique", "Coloriages Séquentiels"]
+      },
+      ar: {
+        dir: "rtl",
+        promo: "✨ كوّن باقتك الخاصة: تخفيض فوري 15% عند إضافة 3 كتب إلى السلة!",
+        subtitle: "كتب ووسائل أرطوفونية وتعليمية",
+        search: "ابحث عن كتاب (المفردات، القراءة، الفنولوجيا، النطق...)",
+        cart: "السلة",
+        heroBadge: "كتب وكتيبات أرطوفونية • جاهزة للاستعمال",
+        heroTitle1: "كتب أرطوفونية ",
+        heroHighlight: "تفاعلية وممتعة",
+        heroTitle2: " لجميع حصصكم 🌸",
+        heroDesc: "اكتشفوا مجموعتنا من الكتب الأرطوفونية المصممة لتنمية المفردات، القراءة، الفنولوجيا (الوعي الصوتي)، النطق والفهم.",
+        tabAll: "📚 جميع الكتب",
+        tabPacks: "✨ الباقات التوفيرية",
+        tabPepites: "🌸 إصدارات بسعر رمزي",
+        packTitle: "كوّن باقتك (-15%)",
+        packSub: "أضف 3 كتب من اختيارك واحصل على تخفيض 15% تلقائياً",
+        packUnlocked: "🎉 تم تفعيل تخفيض 15%!",
+        packSelected: "كتب مختارة",
+        filterNeed: "1. التصفية حسب المجال الأرطوفوني:",
+        filterSeries: "2. التصفية حسب السلسلة:",
+        reset: "إعادة ضبط",
+        add: "إضافة",
+        preview: "معاينة",
+        save: "وفّر",
+        emptyCart: "سلتك فارغة حالياً.",
+        subtotal: "المجموع الفرعي",
+        discount: "تخفيض الباقة (-15%)",
+        total: "المجموع الإجمالي",
+        formTitle: "معلومات تأكيد الطلب",
+        namePh: "الاسم واللقب الكامل",
+        phonePh: "رقم الهاتف (مثال: 0550...)",
+        wilayaPh: "-- اختر ولايتك (58 ولاية) --",
+        formatPdf: "📄 نسخة PDF",
+        formatPrint: "📦 كتاب مطبوع",
+        whatsappBtn: "إرسال الطلبية عبر واتساب",
+        alertFill: "يرجى إدخال الاسم، رقم الهاتف واختيار الولاية.",
+        needs: ["الكل", "المفردات", "القراءة", "الفنولوجيا", "النطق", "الفهم"],
+        series: ["الكل", "سلسلة المفردات", "القراءة خطوة بخطوة", "تحدي الفنولوجيا", "النطق الممتع", "التلوين المتسلسل"]
+      },
+      en: {
+        dir: "ltr",
+        promo: "✨ Build your bundle: Get 15% OFF instantly when you add 3 books to your cart!",
+        subtitle: "Speech therapy books & resources",
+        search: "Search for a book (vocabulary, reading, phonology...)",
+        cart: "Cart",
+        heroBadge: "Speech Therapy Books & Booklets • Ready to use",
+        heroTitle1: "Interactive & engaging ",
+        heroHighlight: "speech therapy books",
+        heroTitle2: " for your sessions 🌸",
+        heroDesc: "Explore our specialized collection of books designed to boost vocabulary, reading, phonology, articulation, and comprehension.",
+        tabAll: "📚 All Books",
+        tabPacks: "✨ Value Bundles",
+        tabPepites: "🌸 Mini-Price Gems",
+        packTitle: "Build Your Bundle (-15%)",
+        packSub: "Pick any 3 books and unlock an automatic 15% discount",
+        packUnlocked: "🎉 15% OFF Unlocked!",
+        packSelected: "books selected",
+        filterNeed: "1. Filter by therapy area:",
+        filterSeries: "2. Filter by collection:",
+        reset: "Reset",
+        add: "Add",
+        preview: "Preview",
+        save: "Save",
+        emptyCart: "Your cart is empty.",
+        subtotal: "Subtotal",
+        discount: "Bundle Discount (-15%)",
+        total: "Total Amount",
+        formTitle: "Complete Your Order",
+        namePh: "Full Name",
+        phonePh: "Phone Number (e.g., 0550...)",
+        wilayaPh: "-- Select your Wilaya --",
+        formatPdf: "📄 PDF Format",
+        formatPrint: "📦 Printed Book",
+        whatsappBtn: "Send Order via WhatsApp",
+        alertFill: "Please fill in your name, phone number, and Wilaya.",
+        needs: ["All", "Vocabulary", "Reading", "Phonology", "Articulation", "Comprehension"],
+        series: ["All", "Vocabulary Series", "Step-by-Step Reading", "Phonology Challenge", "Fun Articulation", "Sequential Coloring"]
+      }
+    };
+
+    const BOOKS = [
+      {
+        id: 1, price: 2500, oldPrice: 3200, isPack: true, isPepite: false, needIndex: 1, seriesIndex: 1,
+        image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+        fr: { title: "Mon Grand Livre du Vocabulaire & des Catégories", badge: "Best-seller", pages: "65 pages", desc: "Enrichissement du stock lexical actif et passif par thématiques." },
+        ar: { title: "كتابي الكبير لتنمية المفردات والتصنيف اللغوي", badge: "الأكثر مبيعاً", pages: "65 صفحة", desc: "إثراء الرصيد اللغوي الإيجابي والسلبي من خلال مواضيع الحياة اليومية." },
+        en: { title: "My Big Book of Vocabulary & Categories", badge: "Best-seller", pages: "65 pages", desc: "Build active and receptive vocabulary across everyday themes." }
+      },
+      {
+        id: 2, price: 3200, oldPrice: 3900, isPack: true, isPepite: false, needIndex: 2, seriesIndex: 2,
+        image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=600&q=80",
+        fr: { title: "Pack Lecture Pas à Pas — Des Syllabes aux Phrases", badge: "Pack Éco 🌸", pages: "80 pages", desc: "Méthode progressive pour accompagner le décodage et la fluidité de lecture." },
+        ar: { title: "باقة القراءة خطوة بخطوة — من المقاطع إلى الجمل", badge: "باقة توفيرية 🌸", pages: "80 صفحة", desc: "طريقة تدرجية لمرافقة الطفل في فك الترميز وطلاقة القراءة." },
+        en: { title: "Step-by-Step Reading Pack — Syllables to Sentences", badge: "Value Pack 🌸", pages: "80 pages", desc: "Progressive visual method supporting decoding and reading fluency." }
+      },
+      {
+        id: 3, price: 1600, oldPrice: 2000, isPack: false, isPepite: false, needIndex: 3, seriesIndex: 3,
+        image: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?auto=format&fit=crop&w=600&q=80",
+        fr: { title: "Cahier de Conscience Phonologique & Syllabique", badge: "Populaire", pages: "48 pages", desc: "Segmentation syllabique, identification du son cible et fusion phonémique." },
+        ar: { title: "دفتر الوعي الصوتي والتقطيع المقطعي", badge: "مطلوب بكثرة", pages: "48 صفحة", desc: "أنشطة تقطيع المقاطع، التعرف على الصوت المستهدف والدمج الصوتي." },
+        en: { title: "Phonological & Syllabic Awareness Workbook", badge: "Popular", pages: "48 pages", desc: "Syllable segmentation, target sound identification, and phoneme blending." }
+      },
+      {
+        id: 4, price: 1800, oldPrice: null, isPack: false, isPepite: false, needIndex: 4, seriesIndex: 4,
+        image: "https://images.unsplash.com/photo-1606092195730-5d7b9af1ef4d?auto=format&fit=crop&w=600&q=80",
+        fr: { title: "Mon Livret d'Articulation — Automatisation des Sons", badge: "Nouveauté", pages: "60 cartes", desc: "Exercices ludiques pour travailler la production des phonèmes." },
+        ar: { title: "كتيب النطق اللطيف — تثبيت مخارج الحروف والأصوات", badge: "جديد", pages: "60 بطاقة", desc: "تمارين متدرجة للتدرب على نطق الأصوات في بداية ووسط ونهاية الكلمة." },
+        en: { title: "My Articulation Booklet — Sound Automation", badge: "New", pages: "60 cards", desc: "Step-by-step drills for practicing target phonemes in words." }
+      },
+      {
+        id: 5, price: 650, oldPrice: null, isPack: false, isPepite: true, needIndex: 5, seriesIndex: 5,
+        image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=600&q=80",
+        fr: { title: "Coloriages Séquentiels — Consignes doubles & triples", badge: "Pépite 🌸", pages: "15 fiches", desc: "Mini-livret à petit prix pour stimuler la compréhension et l'attention." },
+        ar: { title: "التلوين المتسلسل — التعليمات الثنائية والثلاثية", badge: "فرصة 🌸", pages: "15 لوحة", desc: "كتيب بسعر رمزي لتحفيز الفهم الشفهي والكتابي والانتباه." },
+        en: { title: "Sequential Coloring — Multi-Step Instructions", badge: "Mini Gem 🌸", pages: "15 sheets", desc: "Low-price booklet to boost comprehension and working memory." }
+      }
+    ];
+
+    function App() {
+      const [lang, setLang] = useState("fr");
+      const t = TRANSLATIONS[lang];
+
+      const [needIdx, setNeedIdx] = useState(0);
+      const [seriesIdx, setSeriesIdx] = useState(0);
+      const [tab, setTab] = useState("all");
+      const [search, setSearch] = useState("");
+      const [cart, setCart] = useState([]);
+      const [cartOpen, setCartOpen] = useState(false);
+      const [preview, setPreview] = useState(null);
+
+      // بيانات الزبون للطلب عبر واتساب
+      const [customerName, setCustomerName] = useState("");
+      const [customerPhone, setCustomerPhone] = useState("");
+      const [customerWilaya, setCustomerWilaya] = useState("");
+      const [bookFormat, setBookFormat] = useState("PDF");
+
+      useEffect(() => {
+        document.documentElement.dir = t.dir;
+        document.documentElement.lang = lang;
+      }, [lang, t.dir]);
+
+      const filtered = useMemo(() => {
+        return BOOKS.filter(b => {
+          const c = b[lang];
+          const mNeed = needIdx === 0 || b.needIndex === needIdx;
+          const mSeries = seriesIdx === 0 || b.seriesIndex === seriesIdx;
+          const mSearch = c.title.toLowerCase().includes(search.toLowerCase()) || c.desc.toLowerCase().includes(search.toLowerCase());
+          const mTab = tab === "all" || (tab === "packs" && b.isPack) || (tab === "pepites" && b.isPepite);
+          return mNeed && mSeries && mSearch && mTab;
+        });
+      }, [needIdx, seriesIdx, search, tab, lang]);
+
+      const addToCart = (book) => {
+        setCart(prev => {
+          const ex = prev.find(i => i.id === book.id);
+          if (ex) return prev.map(i => i.id === book.id ? { ...i, qty: i.qty + 1 } : i);
+          return [...prev, { ...book, qty: 1 }];
+        });
+        setCartOpen(true);
+      };
+
+      const updateQty = (id, delta) => {
+        setCart(prev => prev.map(i => i.id === id ? (i.qty + delta > 0 ? { ...i, qty: i.qty + delta } : null) : i).filter(Boolean));
+      };
+
+      const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const hasDiscount = totalItems >= 3;
+      const discount = hasDiscount ? Math.round(subtotal * 0.15) : 0;
+      const finalTotal = subtotal - discount;
+
+      const formatDA = (n) => `${n.toLocaleString('fr-DZ')} DA`;
+
+      // دالة إرسال الطلبية إلى واتساب
+      const sendToWhatsApp = () => {
+        if (!customerName.trim() || !customerPhone.trim() || !customerWilaya) {
+          alert(t.alertFill);
+          return;
+        }
+        const itemsList = cart.map(i => `• ${i[lang].title} (x${i.qty}) = ${formatDA(i.price * i.qty)}`).join('\n');
+        const msg = `🌸 *Ortho Merveille — Nouvelle Commande* 🌸\n\n` +
+          `👤 *Nom:* ${customerName}\n` +
+          `📞 *Tél:* ${customerPhone}\n` +
+          `📍 *Wilaya:* ${customerWilaya}\n` +
+          `📦 *Format:* ${bookFormat}\n\n` +
+          `📚 *Livres commandés:*\n${itemsList}\n\n` +
+          (hasDiscount ? `🎁 *Remise Pack (-15%):* -${formatDA(discount)}\n` : '') +
+          `💰 *TOTAL À PAYER:* *${formatDA(finalTotal)}*`;
+
+        const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* 1. الشريط العلوي الوردي البودري */}
+          <div className="bg-gradient-to-r from-[#F4C2C2] via-[#FADADD] to-[#F4C2C2] text-[#4A353B] py-2.5 px-4 text-center text-xs sm:text-sm font-bold shadow-sm">
+            {t.promo}
+          </div>
+
+          {/* 2. الهيدر + مبدل اللغات */}
+          <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#F4C2C2]/60">
+            <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => {setTab("all"); setNeedIdx(0); setSeriesIdx(0);}}>
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#D98899] to-[#F4C2C2] flex items-center justify-center text-white text-xl font-black shadow-md">
+                  🌸
+                </div>
+                <div>
+                  <span className="text-xl sm:text-2xl font-extrabold text-[#4A353B]">
+                    Ortho <span className="text-[#C86D80]">Merveille</span>
+                  </span>
+                  <span className="block text-[11px] font-semibold text-[#9E7B84]">{t.subtitle}</span>
+                </div>
+              </div>
+
+              <div className="hidden md:flex flex-1 max-w-md">
+                <input
+                  type="text"
+                  placeholder={t.search}
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#FFF5F7] border border-[#F4C2C2] rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D98899]"
+                />
+              </div>
+
+              {/* أزرار تغيير اللغة + السلة */}
+              <div className="flex items-center gap-2">
+                <div className="flex bg-[#FFF0F3] p-1 rounded-full border border-[#F4C2C2]">
+                  {[{c:"fr", l:"FR"}, {c:"ar", l:"عربي"}, {c:"en", l:"EN"}].map(x => (
+                    <button
+                      key={x.c}
+                      onClick={() => setLang(x.c)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-extrabold transition ${lang === x.c ? "bg-[#D98899] text-white" : "text-[#7A5861]"}`}
+                    >
+                      {x.l}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCartOpen(true)}
+                  className="flex items-center gap-2 bg-[#4A353B] hover:bg-[#38272C] text-white px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-md"
+                >
+                  <span>🛍️ {t.cart}</span>
+                  <span className="bg-[#F4C2C2] text-[#4A353B] text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* 3. الواجهة الترحيبية + أداة كوّن باقتك */}
+          <section className="bg-gradient-to-b from-[#FDF0F3] to-[#FFF9FA] py-10 border-b border-[#F4C2C2]/40">
+            <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-7 space-y-4">
+                <span className="inline-block px-4 py-1.5 rounded-full bg-[#FADADD] text-[#7A3E4D] text-xs font-extrabold border border-[#F4C2C2]">
+                  {t.heroBadge}
+                </span>
+                <h1 className="text-3xl sm:text-5xl font-extrabold text-[#4A353B] leading-tight">
+                  {t.heroTitle1}
+                  <span className="text-[#C86D80] underline decoration-wavy decoration-[#F4C2C2]">{t.heroHighlight}</span>
+                  {t.heroTitle2}
+                </h1>
+                <p className="text-[#7A5861] text-base sm:text-lg leading-relaxed">{t.heroDesc}</p>
+
+                <div className="flex flex-wrap gap-2.5 pt-2">
+                  {[
+                    { id: "all", label: t.tabAll },
+                    { id: "packs", label: t.tabPacks },
+                    { id: "pepites", label: t.tabPepites }
+                  ].map(b => (
+                    <button
+                      key={b.id}
+                      onClick={() => setTab(b.id)}
+                      className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-extrabold transition ${tab === b.id ? "bg-[#D98899] text-white shadow-sm" : "bg-white text-[#4A353B] border border-[#F4C2C2]"}`}
+                    >
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* بطاقة تقدم الباقة -15% */}
+              <div className="lg:col-span-5 bg-white rounded-3xl p-6 shadow-xl border-2 border-[#F4C2C2]">
+                <h2 className="text-lg font-extrabold text-[#4A353B]">{t.packTitle}</h2>
+                <p className="text-xs text-[#9E7B84] mt-1">{t.packSub}</p>
+                <div className="my-4 bg-[#FFF9FA] p-4 rounded-2xl border border-[#F4C2C2]/60">
+                  <div className="flex justify-between text-xs font-extrabold mb-2">
+                    <span>{totalItems} / 3 {t.packSelected}</span>
+                    <span className={hasDiscount ? "text-emerald-600" : "text-[#C86D80]"}>
+                      {hasDiscount ? t.packUnlocked : "-15%"}
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-[#FADADD]/60 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 rounded-full ${hasDiscount ? "bg-emerald-500" : "bg-[#D98899]"}`}
+                      style={{ width: `${Math.min((totalItems / 3) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCartOpen(true)}
+                  className="w-full py-3 rounded-xl bg-[#FFF0F3] hover:bg-[#FADADD] text-[#7A3E4D] font-extrabold text-xs transition"
+                >
+                  🛍️ {t.cart} ({totalItems})
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* 4. الفلترة المزدوجة */}
+          <section className="max-w-7xl mx-auto px-4 py-6 w-full">
+            <div className="bg-white rounded-3xl p-5 border border-[#F4C2C2]/60 space-y-4">
+              <div>
+                <span className="text-xs font-extrabold text-[#9E7B84] block mb-2">{t.filterNeed}</span>
+                <div className="flex flex-wrap gap-2">
+                  {t.needs.map((n, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setNeedIdx(i)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${needIdx === i ? "bg-[#F4C2C2] text-[#4A353B]" : "bg-[#FFF9FA] text-[#7A5861] border border-[#F4C2C2]/40"}`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs font-extrabold text-[#9E7B84] block mb-2">{t.filterSeries}</span>
+                <div className="flex flex-wrap gap-2">
+                  {t.series.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSeriesIdx(i)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${seriesIdx === i ? "bg-[#4A353B] text-white" : "bg-[#FFF9FA] text-[#7A5861] border border-[#F4C2C2]/40"}`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. شبكة الكتب */}
+          <main className="max-w-7xl mx-auto px-4 pb-16 w-full flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map(book => {
+                const c = book[lang];
+                const save = book.oldPrice ? book.oldPrice - book.price : null;
+                return (
+                  <div key={book.id} className="bg-white rounded-3xl border border-[#F4C2C2]/60 overflow-hidden shadow-sm hover:shadow-xl transition flex flex-col">
+                    <div className="relative h-52 bg-[#FFF0F3]">
+                      <img src={book.image} alt={c.title} className="w-full h-full object-cover" />
+                      <div className="absolute top-3 start-3 flex flex-col gap-1">
+                        <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-white/95 text-[#4A353B] shadow-sm">{c.badge}</span>
+                        {save && <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-[#C86D80] text-white shadow-sm">{t.save} {formatDA(save)}</span>}
+                      </div>
+                      <button onClick={() => setPreview(book)} className="absolute bottom-3 start-3 px-3 py-1 rounded-xl bg-white/95 text-[#4A353B] text-xs font-extrabold shadow-sm">
+                        👁️ {t.preview}
+                      </button>
+                      <span className="absolute bottom-3 end-3 px-2.5 py-1 rounded-lg bg-[#4A353B]/85 text-white text-[11px] font-bold">{c.pages}</span>
+                    </div>
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div>
+                        <span className="text-xs font-extrabold text-[#C86D80]">{t.needs[book.needIndex]} • {t.series[book.seriesIndex]}</span>
+                        <h3 className="font-extrabold text-[#4A353B] text-base mt-1">{c.title}</h3>
+                        <p className="text-xs text-[#7A5861] mt-1.5 leading-relaxed">{c.desc}</p>
+                      </div>
+                      <div className="pt-3 border-t border-[#F4C2C2]/40 flex items-center justify-between">
+                        <div>
+                          {book.oldPrice && <span className="text-xs text-[#9E7B84] line-through block">{formatDA(book.oldPrice)}</span>}
+                          <span className="text-lg font-black text-[#4A353B]">{formatDA(book.price)}</span>
+                        </div>
+                        <button onClick={() => addToCart(book)} className="px-4 py-2.5 rounded-2xl bg-[#F4C2C2] hover:bg-[#E8A5B2] text-[#4A353B] font-extrabold text-xs transition">
+                          + {t.add}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </main>
+
+          {/* 6. نافذة معاينة الكتاب */}
+          {preview && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full p-6 border-2 border-[#F4C2C2] space-y-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-lg font-extrabold text-[#4A353B]">{preview[lang].title}</h3>
+                  <button onClick={() => setPreview(null)} className="text-sm font-bold px-2.5 py-1 rounded-full bg-[#FFF0F3]">✕</button>
+                </div>
+                <img src={preview.image} className="w-full h-48 object-cover rounded-2xl" />
+                <p className="text-sm text-[#7A5861]">{preview[lang].desc}</p>
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-xl font-black">{formatDA(preview.price)}</span>
+                  <button onClick={() => {addToCart(preview); setPreview(null);}} className="px-5 py-2.5 rounded-2xl bg-[#D98899] text-white font-extrabold text-xs">
+                    + {t.add}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 7. السلة الجانبية + استمارة الولاية وواتساب */}
+          {cartOpen && (
+            <div className="fixed inset-0 z-50 flex justify-end bg-black/40">
+              <div className="w-full max-w-md bg-white h-full p-6 overflow-y-auto flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-center pb-4 border-b border-[#F4C2C2]">
+                    <h2 className="text-lg font-extrabold">🛍️ {t.cart} ({totalItems})</h2>
+                    <button onClick={() => setCartOpen(false)} className="px-3 py-1 rounded-full bg-[#FFF0F3] font-bold">✕</button>
+                  </div>
+
+                  {cart.length === 0 ? (
+                    <p className="text-center text-sm text-[#9E7B84] py-12">{t.emptyCart}</p>
+                  ) : (
+                    <div className="mt-4 space-y-3">
+                      {cart.map(item => (
+                        <div key={item.id} className="flex justify-between items-center bg-[#FFF9FA] p-3 rounded-2xl border border-[#F4C2C2]/50">
+                          <div>
+                            <h4 className="text-xs font-extrabold">{item[lang].title}</h4>
+                            <span className="text-xs font-black text-[#C86D80]">{formatDA(item.price)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded bg-white border border-[#F4C2C2] font-bold">-</button>
+                            <span className="text-xs font-extrabold">{item.qty}</span>
+                            <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded bg-white border border-[#F4C2C2] font-bold">+</button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* استمارة معلومات الزبون والولاية */}
+                      <div className="mt-6 pt-4 border-t border-[#F4C2C2] space-y-3">
+                        <h3 className="text-sm font-extrabold text-[#4A353B]">{t.formTitle}</h3>
+                        <input
+                          type="text"
+                          placeholder={t.namePh}
+                          value={customerName}
+                          onChange={e => setCustomerName(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF9FA] border border-[#F4C2C2] text-xs"
+                        />
+                        <input
+                          type="tel"
+                          placeholder={t.phonePh}
+                          value={customerPhone}
+                          onChange={e => setCustomerPhone(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF9FA] border border-[#F4C2C2] text-xs"
+                        />
+                        <select
+                          value={customerWilaya}
+                          onChange={e => setCustomerWilaya(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF9FA] border border-[#F4C2C2] text-xs font-semibold"
+                        >
+                          <option value="">{t.wilayaPh}</option>
+                          {WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
+                        </select>
+
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setBookFormat("PDF")}
+                            className={`py-2 rounded-xl text-xs font-extrabold border ${bookFormat === "PDF" ? "bg-[#F4C2C2] text-[#4A353B] border-[#D98899]" : "bg-white text-[#7A5861] border-[#F4C2C2]"}`}
+                          >
+                            {t.formatPdf}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBookFormat("Imprimé / مطبوع")}
+                            className={`py-2 rounded-xl text-xs font-extrabold border ${bookFormat !== "PDF" ? "bg-[#F4C2C2] text-[#4A353B] border-[#D98899]" : "bg-white text-[#7A5861] border-[#F4C2C2]"}`}
+                          >
+                            {t.formatPrint}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {cart.length > 0 && (
+                  <div className="pt-4 border-t border-[#F4C2C2] space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>{t.subtotal}</span>
+                      <span>{formatDA(subtotal)}</span>
+                    </div>
+                    {hasDiscount && (
+                      <div className="flex justify-between text-xs font-extrabold text-emerald-600">
+                        <span>{t.discount}</span>
+                        <span>- {formatDA(discount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-base font-black pt-2 border-t border-[#F4C2C2]/40">
+                      <span>{t.total}</span>
+                      <span>{formatDA(finalTotal)}</span>
+                    </div>
+                    <button
+                      onClick={sendToWhatsApp}
+                      className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-lg transition flex items-center justify-center gap-2"
+                    >
+                      <span>💬 {t.whatsappBtn}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
